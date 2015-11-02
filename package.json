@@ -1,0 +1,18 @@
+{
+  "name": "loftschool-app",
+  "version": "0.1.0",
+  "devDependencies": {
+    "gulp": "^3.8.11",
+    "gulp-clean": "^0.3.1",
+    "gulp-if": "^1.2.5",
+    "gulp-import-css": "^0.1.2",
+    "gulp-minify-css": "^1.1.1",
+    "gulp-uglify": "^1.2.0",
+    "gulp-useref": "^1.1.2",
+    "wiredep": "^2.2.2",
+    "browser-sync": "^2.9.11",
+    "glob": "^5.0.15",
+    "gulp-file": "^0.2.0",
+    "run-sequence": "^1.1.4"
+  }
+}
