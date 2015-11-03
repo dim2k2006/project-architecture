@@ -1,5 +1,5 @@
 {
-  "name": "loftschool-app",
+  "name": "iflexion-app",
   "version": "0.1.0",
   "devDependencies": {
     "gulp": "^3.8.11",
@@ -13,6 +13,14 @@
     "browser-sync": "^2.9.11",
     "glob": "^5.0.15",
     "gulp-file": "^0.2.0",
-    "run-sequence": "^1.1.4"
+    "run-sequence": "^1.1.4",
+    "imagemin-pngquant": "^4.2.0",
+    "gulp-imagemin": "^2.3.0",
+    "gulp-less": "^3.0.3",
+    "path": "^0.12.7",
+    "gulp-concat": "^2.6.0"
+  },
+  "dependencies": {
+    "gulp-sourcemaps": "^1.6.0"
   }
 }

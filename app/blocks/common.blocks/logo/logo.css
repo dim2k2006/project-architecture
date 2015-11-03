@@ -1,0 +1,28 @@
+.logo {
+	float: left;
+}
+
+.logo-link {
+	position: relative;
+	display: block;
+	width: 201px;
+	height: 49px;
+	text-indent: -999px;
+	background-repeat: no-repeat;
+	background-position: 0 0;
+	background-image: url(common.logo@1x.png);
+	overflow: hidden;
+}
+
+
+
+@media
+only screen and (-webkit-min-device-pixel-ratio:2),
+only screen and (min--moz-device-pixel-ratio:2),
+only screen and (-o-min-device-pixel-ratio:2/1),
+only screen and (min-device-pixel-ratio:2) {
+    .logo-link {
+        background-image: url(common.logo@2x.png);
+        background-size: 201px 49px;
+	}
+}

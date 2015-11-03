@@ -10,42 +10,84 @@ var gulp = require('gulp'),
 	file = require('gulp-file'),
 	browserSync = require('browser-sync').create(),
 	glob = require('glob'),
-	pages = [];
+	less = require('gulp-less'),
+	concat = require('gulp-concat'),
+	sourcemaps = require('gulp-sourcemaps'),
+	path = require('path'),
+	pages = [],
+	jsTasks = {};
 
 
 
-// Clean blocks from old css import files
-gulp.task('clean-blocks', function () {
-	return gulp.src('./app/blocks/**/blocks.style.*', {read: false})
+// DEVELOPMENT TASKS
+
+
+
+// Compile bootstrap
+gulp.task('bootstrap', function() {
+	return gulp.src('./app/blocks/vendor.blocks/bootstrap/bootstrap.less')
+	    .pipe(less({
+			paths: [ path.join(__dirname, 'less', 'includes') ]
+		}))
+		.pipe(gulp.dest('./app/blocks/vendor.blocks/bootstrap'))
+		.pipe(browserSync.stream());
+});
+
+
+
+// Clean bundles
+gulp.task('clean-bundles', function() {
+	return gulp.src('./app/blocks/**/blocks.bundle.*', {read: false})
 		.pipe(clean());
 });
 
 
 
-// Prepare new css import files
-gulp.task('prepare', function() {
-	var folders = glob.sync("./app/blocks/*");
+
+// Get levels
+gulp.task('get-levels', function() {
+	var folders = glob.sync("./app/blocks/*"),
+		tasksNum = 0;
 
 	folders.map(function(folder) {
 		folder = folder.split('/').reverse()[0];
 		pages.push('blocks/' + folder + '/');
+
+		jsTasks['jsTask' + tasksNum] = 'blocks/' + folder + '/';
+		tasksNum++;
 	});
-	
+});
+
+
+
+// Create css bundles
+gulp.task('css-bundles', function() {	
 	pages.map(function(page) {
-		glob("./app/"+ page +"*", function (er, files) {
-	 	
-		 	var str = '',
-		 		block = '';
-		 	files.map(function(file) {
-		 		block = file.split('/').reverse()[0];
-		 		
+		var files = glob.sync("./app/"+ page +"*"),
+			str = '',
+		 	block = '';
 
-				str += "@import url('" + block + "/" + block + ".css');\n";
-			});
+		files.map(function(file) {
+	 		block = file.split('/').reverse()[0];
+	 		
+			str += "@import url('" + block + "/" + block + ".css');\n";
+		});
 
-			return file('blocks.style.css', str, { src: true }).pipe(gulp.dest('app/' + page));
-		})
-	})
+		return file('blocks.bundle.css', str, { src: true }).pipe(gulp.dest('app/' + page));
+	});
+});
+
+
+
+// Create js bundles
+gulp.task('js-bundles', function() {	
+	pages.map(function(page) {
+		return gulp.src('./app/'+ page +'**/*.js')
+			.pipe(sourcemaps.init())
+    		.pipe(concat('blocks.bundle.js'))
+    		.pipe(sourcemaps.write())
+    		.pipe(gulp.dest('app/' + page));
+	});
 });
 
 
@@ -58,9 +100,34 @@ gulp.task('browser-sync', function() {
         }
     });
 
+    
+
+    // Watch html files
     gulp.watch('./app/*.html').on('change', browserSync.reload);
+
+    // Watch css files
     gulp.watch('./app/blocks/**/*.css').on('change', browserSync.reload);
-    gulp.watch('./app/blocks/**/*.js').on('change', browserSync.reload);
+
+    // Watch js files
+    for (var key in jsTasks) {
+    	gulp.watch('./app/'+ jsTasks[key] +'**/*.js', [key]);
+
+    	(function(key) {
+	    	gulp.task(key, function() {	
+				return gulp.src('./app/'+ jsTasks[key] +'**/*.js')
+				.pipe(sourcemaps.init())
+	    		.pipe(concat('blocks.bundle.js'))
+	    		.pipe(sourcemaps.write())
+	    		.pipe(gulp.dest('app/' + jsTasks[key]))
+	    		.pipe(browserSync.stream());
+			});
+		})(key);
+	}
+
+    // Watch bootstrap files
+    gulp.watch('./app/blocks/**/*.less', ['bootstrap']);
+
+    // Watch bower.json file
     gulp.watch('bower.json', ['bower']);
 });
 
@@ -77,62 +144,14 @@ gulp.task('bower', function () {
 
 
 
-// CSS import
-// gulp.task('import', function () {
-//   gulp.src('assets/*.css')
-//     .pipe(importCss())
-//     .pipe(gulp.dest('dist/'));
-// });
-
-
-
-// BUILD TASKS
-
-
-
-// Build
-gulp.task('build', ['move'], function () {
-    var assets = useref.assets();
-    
-    return gulp.src('app/*.html')
-        .pipe(assets)
-        .pipe(gulpif('*.js', uglify()))
-        .pipe(gulpif('*.css', minifyCss({rebase: false})))
-        .pipe(assets.restore())
-        .pipe(useref())
-        .pipe(gulp.dest('dist'));
-});
-
-
-
-// Clean
-gulp.task('clean', function () {
-	return gulp.src('dist', {read: false})
-		.pipe(clean());
-});
-
-
-
-
-// Move images and fonts to dist
-gulp.task('move', ['clean'], function() {
-	gulp.src('./app/images/*')
-	.pipe(gulp.dest('dist/images'));
-
-	gulp.src('./app/fonts/*')
-	.pipe(gulp.dest('dist/fonts'));
-});
-
-
-
-
-
-
 // RUN TASKS
 
 
 
 // Default task
 gulp.task('default', function(callback) {
-	runSequence('clean-blocks', 'prepare', 'browser-sync', callback);
+	runSequence('bootstrap', 'clean-bundles', 'get-levels', 'css-bundles', 'js-bundles', 'browser-sync', callback);
 });
+
+
+

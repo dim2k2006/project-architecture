@@ -1,3 +1,13 @@
 .footer {
-	background-color: green;
+	background-color: #3d3c42;
+}
+
+.footer-copy {
+	font-family: 'Ubuntu', Arial, Helvetica, sans-serif;
+	font-weight: 300;
+	font-size: 13px;
+	line-height: 24px;
+	color: #89898b;
+	text-align: center;
+	background-color: #2d2c31;
 }
