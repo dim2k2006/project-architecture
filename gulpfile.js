@@ -106,7 +106,7 @@ gulp.task('browser-sync', function() {
     gulp.watch('./app/*.html').on('change', browserSync.reload);
 
     // Watch css files
-    gulp.watch('./app/blocks/**/*.css').on('change', browserSync.reload);
+    gulp.watch('./app/blocks/**/*.css', ['css']);
 
     // Watch js files
     for (var key in jsTasks) {
@@ -133,6 +133,14 @@ gulp.task('browser-sync', function() {
 
 
 
+// CSS stream
+gulp.task('css', function() {
+	return gulp.src('./app/blocks/**/*.css')
+    	.pipe(browserSync.stream());
+});
+
+
+
 // Bower wiredep
 gulp.task('bower', function () {
 	gulp.src('./app/*.html')
@@ -152,6 +160,4 @@ gulp.task('bower', function () {
 gulp.task('default', function(callback) {
 	runSequence('bootstrap', 'clean-bundles', 'get-levels', 'css-bundles', 'js-bundles', 'browser-sync', callback);
 });
-
-
 
