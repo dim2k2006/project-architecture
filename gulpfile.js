@@ -14,6 +14,11 @@ var gulp = require('gulp'),
 	concat = require('gulp-concat'),
 	sourcemaps = require('gulp-sourcemaps'),
 	path = require('path'),
+	imagemin = require('gulp-imagemin'),
+	pngquant = require('imagemin-pngquant'),
+	url = require('gulp-css-url-adjuster'),
+	autoprefixer = require('autoprefixer-core'),
+	postcss = require('gulp-postcss'),
 	pages = [],
 	jsTasks = {};
 
@@ -152,6 +157,82 @@ gulp.task('bower', function () {
 
 
 
+// BUILD TASKS
+
+
+
+// Clean
+gulp.task('clean', function () {
+	return gulp.src('dist', {read: false})
+		.pipe(clean());
+});
+
+
+
+// Move
+gulp.task('move', function() {
+	gulp.src('./app/fonts/*')
+	.pipe(gulp.dest('dist/fonts'));
+});
+
+
+
+// Imgmin
+gulp.task('imgmin', function () {
+	pages.map(function(page) {
+		var files = glob.sync("./app/"+ page +"*"),
+		 	block = '';
+
+		files.map(function(file) {
+	 		block = file.split('/').reverse()[0];
+
+	 		gulp.src('./app/'+ page + block +'/*.{jpg,png,svg}')
+	 		.pipe(imagemin({
+	            progressive: true,
+	            svgoPlugins: [{removeViewBox: false}],
+	            use: [pngquant()]
+	        }))
+	        .pipe(gulp.dest('dist/images'));
+		});
+	});
+});
+
+
+
+// Css import
+gulp.task('css-import', function() {
+	pages.map(function(page) {
+		var files = glob.sync("./app/"+ page +"*");
+
+		gulp.src('./app/'+ page +'blocks.bundle.css')
+		.pipe(importCss())
+		.pipe(url({prepend: '../images/'}))
+		.pipe(postcss([ autoprefixer({browsers: ['last 10 versions']}) ]))
+		.pipe(gulp.dest('./app/'+ page));
+	});
+});
+
+
+
+// Assets
+gulp.task('assets', function () {
+    var assets = useref.assets();
+    
+    return gulp.src('app/*.html')
+        .pipe(assets)
+        .pipe(gulpif('*.js', uglify()))
+        .pipe(gulpif('*.css', minifyCss({rebase: false})))
+        .pipe(assets.restore())
+        .pipe(useref())
+        .pipe(gulp.dest('dist'));
+});
+
+
+
+// Postcss
+
+
+
 // RUN TASKS
 
 
@@ -161,3 +242,9 @@ gulp.task('default', function(callback) {
 	runSequence('bootstrap', 'clean-bundles', 'get-levels', 'css-bundles', 'js-bundles', 'browser-sync', callback);
 });
 
+
+
+// Build task
+gulp.task('build', function(callback) {
+	runSequence('bootstrap', 'clean-bundles', 'get-levels', 'css-bundles', 'js-bundles', 'clean', 'move', 'imgmin', 'css-import', 'assets', callback);
+});
